@@ -70,21 +70,21 @@ def get_cli_input() -> Dict[str, Union[bool, str, int]]:
     return vars(cli.parse_args())
 
 
-def get_args() -> Tuple[str, str, str, str, int, str, str]:
+def get_args() -> Dict[str, Union[str, int]]:
     """Reads enviroment parameters or sets default value.
 
     Returns:
         Tuple[str, str, str, str, int, str, str]: Type-casted values
     """
-    return (
-        os.environ.get("INPUT_CHANGES", ""),
-        os.environ.get("INPUT_STAGE", ""),
-        os.environ.get("INPUT_PROFILE", ""),
-        os.environ.get("INPUT_VALIDATOR_PATH", ""),
-        int(os.environ.get("INPUT_LOGLEVEL", 30)),
-        os.environ.get("INPUT_AWS_ACCESS_KEY_ID", ""),
-        os.environ.get("INPUT_AWS_SECRET_ACCESS_KEY", ""),
-    )
+    return {
+        "changes": os.environ.get("INPUT_CHANGES", ""),
+        "stage": os.environ.get("INPUT_STAGE", ""),
+        "profile": os.environ.get("INPUT_PROFILE", ""),
+        "validator_path": os.environ.get("INPUT_VALIDATOR_PATH", ""),
+        "log_level": int(os.environ.get("INPUT_LOGLEVEL", 30)),
+        "aws_key": os.environ.get("INPUT_AWS_ACCESS_KEY_ID", ""),
+        "aws_secret": os.environ.get("INPUT_AWS_SECRET_ACCESS_KEY", ""),
+    }
 
 
 def discover_file(paths: List[str], fname: str) -> List[str]:
@@ -168,17 +168,9 @@ def set_profile() -> None:
 
 if __name__ == "__main__":  # pragma: no cover
     args = get_cli_input()
-    (
-        changes,
-        stage,
-        profile,
-        validator_path,
-        log_level,
-        aws_key,
-        aws_secret,
-    ) = get_args()
+    inputs = get_args()
     assert isinstance(args["verbosity"], int)  # noqa: 501 # mypy only
-    log = setup_logging(args["verbosity"], log_level)
+    log = setup_logging(args["verbosity"], inputs["log_level"])
     log.info("e-bot7 Serverless Helper")
     log.info("Setup")
     log.info(f"Current CWD: {os.getcwd()}")
@@ -189,18 +181,18 @@ if __name__ == "__main__":  # pragma: no cover
         log.info(f"  {k}: {v}")
 
     changes_list = (
-        changes.split()
-        if len(changes.split()) > len(changes.split(","))
-        else changes.split(",")
+        inputs["changes"].split()
+        if len(inputs["changes"].split()) > len(inputs["changes"].split(","))
+        else inputs["changes"].split(",")
     )
 
     log.info("The following inputs were set:")
     log.info(
         f"  CHANGES: {len(changes_list)} files - {' '.join(changes_list)}"
     )
-    log.info(f"  STAGE: {stage}")
-    log.info(f"  PROFILE: {profile}")
-    log.info(f"  VALIDATOR_PATH: {validator_path}")
+    log.info(f"  STAGE: {inputs['stage']}")
+    log.info(f"  PROFILE: {inputs['profile']}")
+    log.info(f"  VALIDATOR_PATH: {inputs['validator_path']}")
 
     assert isinstance(args["filename"], str)  # noqa: 501 # mypy only
     sls = discover_file(changes_list, args["filename"])
@@ -212,7 +204,7 @@ if __name__ == "__main__":  # pragma: no cover
     for fn in sls:
         current_fn = Lambda(fn)
         current_deployment = current_fn.Deployment(
-            stage, "eu-central-1", profile
+            inputs["stage"], "eu-central-1", inputs["profile"]
         )
         log.info(f"Deploying service.")
         current_deployment.deploy()
