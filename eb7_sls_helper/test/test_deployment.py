@@ -109,20 +109,20 @@ class DeploymentTestCase(unittest.TestCase):
         """Asserts that info is intialized empty."""
         self.assertEqual(self.Deployment.get_info(), None)
 
-    @patch("subprocess.Popen", side_effect=mock_subprocess)
+    @patch("sls_function.subprocess.Popen", side_effect=mock_subprocess)
     def test_deploy(self, mock):
         """Asserts that deployment of service works."""
         self.Deployment.deploy()
         self.assertTrue(mock.called)
         self.assertTrue(len(mock.call_args_list) == 2)
 
-    @patch("subprocess.Popen", side_effect=mock_subprocess)
+    @patch("sls_function.subprocess.Popen", side_effect=mock_subprocess)
     def test_deploy_failing(self, mock):
         """Asserts that misspecified service raises RuntimeError."""
         with self.assertRaises(RuntimeError):
             self.FailingDeployment.deploy()
 
-    @patch("subprocess.Popen", side_effect=mock_subprocess)
+    @patch("sls_function.subprocess.Popen", side_effect=mock_subprocess)
     def test_remove(self, mock):
         """Asserts that removing service works."""
         self.Deployment.deploy()

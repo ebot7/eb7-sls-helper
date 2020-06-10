@@ -26,6 +26,7 @@ var/
 # Tox and pytest cov
 coverage_html_report/
 .tox/
+.coverage
 
 # mypy
 .mypy_cache/
