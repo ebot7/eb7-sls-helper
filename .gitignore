@@ -1,0 +1,36 @@
+# Distribution / packaging
+.Python
+*.pyc
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# VSC
+.vscode/
+
+# Serverless directories
+.serverless
+
+# Tox and pytest cov
+coverage_html_report/
+.tox/
+.coverage
+
+# mypy
+.mypy_cache/
+
+# Ignore serverless manifest files
+serverless.manifest.json
+.serverless/manifest.json

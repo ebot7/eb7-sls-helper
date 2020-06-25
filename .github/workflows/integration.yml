@@ -1,0 +1,16 @@
+name: Integration Test
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Self test
+        id: deploy 
+        uses: ebot7/eb7-sls-helper@develop
+        with:
+          changes: "eb7_sls_helper/test/test.py eb7_sls_helper/test/abc.py"
+          stage: "test"
+          profile: "default"
+          aws_key : ${{ secrets.AWS_ACCESS_KEY_ID }} 
+          aws_secret :  ${{ secrets.AWS_SECRET_ACCESS_KEY}} 

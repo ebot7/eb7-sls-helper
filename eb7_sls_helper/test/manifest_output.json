@@ -1,0 +1,58 @@
+{
+  "dev": {
+    "urls": {
+      "apiGateway": "https://246ikpdmgg.execute-api.eu-central-1.amazonaws.com/dev",
+      "apiGatewayBaseURL": "https://246ikpdmgg.execute-api.eu-central-1.amazonaws.com/dev",
+      "httpApi": "",
+      "httpApiBaseURL": "",
+      "byPath": {
+        "/users/create": {
+          "url": "https://246ikpdmgg.execute-api.eu-central-1.amazonaws.com/dev/users/create",
+          "methods": [
+            "GET"
+          ]
+        }
+      },
+      "byFunction": {
+        "hello": {
+          "url": "https://246ikpdmgg.execute-api.eu-central-1.amazonaws.com/dev/users/create",
+          "methods": [
+            "GET"
+          ]
+        }
+      },
+      "byMethod": {
+        "GET": [
+          "https://246ikpdmgg.execute-api.eu-central-1.amazonaws.com/dev/users/create"
+        ]
+      }
+    },
+    "functions": {
+      "hello": {
+        "name": "eb7-sls-helper-dev-hello",
+        "arn": "arn:aws:lambda:eu-central-1:374461977062:function:eb7-sls-helper-dev-hello:115",
+        "runtime": "python2.7",
+        "triggers": [
+          "http"
+        ],
+        "dependancies": {}
+      }
+    },
+    "outputs": [
+      {
+        "OutputKey": "HelloLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:eu-central-1:374461977062:function:eb7-sls-helper-dev-hello:115",
+        "Description": "Current Lambda function version"
+      },
+      {
+        "OutputKey": "ServiceEndpoint",
+        "OutputValue": "https://246ikpdmgg.execute-api.eu-central-1.amazonaws.com/dev",
+        "Description": "URL of the service endpoint"
+      },
+      {
+        "OutputKey": "ServerlessDeploymentBucketName",
+        "OutputValue": "eb7-sls-helper-dev-serverlessdeploymentbucket-1ikwuuznx8nr6"
+      }
+    ]
+  }
+}

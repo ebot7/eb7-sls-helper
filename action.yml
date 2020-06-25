@@ -1,0 +1,38 @@
+name: 'sls-helper'
+description: 'Vaildates and deploys sls functions'
+branding:
+  icon: 'check'
+  color: 'green'
+
+inputs:
+  changes:
+    description: 'Path or space-separated list of paths of files changed'
+    required: true 
+  stage:
+    description: 'Function stage to deploy to'
+    required: true
+  profile:
+    description: 'AWS profile to deploy to'
+    required: true
+  validator_path:
+    description: 'Function stage to deploy to'
+    required: false 
+    default: ''
+  loglevel:
+    description: 'Loglevel of output'
+    required: false
+    default: 10
+  aws_access_key_id:
+    description: 'AWS KEY'
+    required: true
+  aws_secret_access_key:
+    description: 'AWS SECRET KEY'
+    required: true
+
+outputs:
+  formatted:
+    description: 'Formatted output for github'
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
