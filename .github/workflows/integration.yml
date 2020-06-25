@@ -1,5 +1,8 @@
 name: Integration Test
-on: [push]
+on:
+  push:
+    branches:
+      - master
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -7,7 +10,7 @@ jobs:
       - uses: actions/checkout@master
       - name: Self test
         id: deploy 
-        uses: ebot7/eb7-sls-helper@develop
+        uses: ebot7/eb7-sls-helper@master
         with:
           changes: "eb7_sls_helper/test/test.py eb7_sls_helper/test/abc.py"
           stage: "test"
