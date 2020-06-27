@@ -22,10 +22,10 @@ inputs:
     description: 'Loglevel of output'
     required: false
     default: 10
-  aws_access_key_id:
+  aws_key:
     description: 'AWS KEY'
     required: true
-  aws_secret_access_key:
+  aws_secret:
     description: 'AWS SECRET KEY'
     required: true
 
