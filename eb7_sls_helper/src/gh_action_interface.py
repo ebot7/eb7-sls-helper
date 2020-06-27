@@ -37,24 +37,6 @@ def get_cli_input() -> Dict[str, Union[bool, str, int]]:
     """
     cli = argparse.ArgumentParser()
     cli.add_argument(
-        "--discovery",
-        type=bool,
-        default=False,
-        help=(
-            "If set, serverless files will be searched in"
-            + "directories of changes based on filename and dir-level arg"
-        ),
-    )
-    cli.add_argument(
-        "--validate-only",
-        type=bool,
-        default=False,
-        help=(
-            "If set, the serverless definition will only be validated, "
-            + "not deployed"
-        ),
-    )
-    cli.add_argument(
         "--filename",
         type=str,
         default="serverless.yml",
@@ -82,6 +64,7 @@ def get_args() -> Dict[str, Union[str, int]]:
         "profile": os.environ.get("INPUT_PROFILE", ""),
         "validator_path": os.environ.get("INPUT_VALIDATOR_PATH", ""),
         "log_level": int(os.environ.get("INPUT_LOGLEVEL", 30)),
+        "mode": os.environ.get("INPUT_MODE", ""),
         "aws_key": os.environ.get("INPUT_AWS_ACCESS_KEY_ID", ""),
         "aws_secret": os.environ.get("INPUT_AWS_SECRET_ACCESS_KEY", ""),
     }
@@ -166,6 +149,51 @@ def set_profile() -> None:
         raise subprocess.CalledProcessError(return_code, cmd)
 
 
+def validate():
+    """Validates the sls definitions."""
+    pass
+
+
+def deploy(
+    sls: List[str],
+    inputs: Dict[str, Union[str, int]],
+    args: Dict[str, Union[bool, str, int]],
+) -> List[Deployment_Dict]:
+    """Deploys the sls definitions."""
+    log.info("Setting up sls profile")
+    set_profile()
+    deployments: List[Deployment_Dict] = []
+    for service in sls:
+        current_fn = Lambda(service)
+        current_deployment = current_fn.Deployment(
+            inputs["stage"], "eu-central-1", inputs["profile"]
+        )
+        log.info(f"Deploying service.")
+        current_deployment.deploy()
+        log.info(f"Deployment successful.")
+        deployment: Deployment_Dict = {}
+        assert current_deployment.stage
+        assert current_fn.service
+        deployment["endpoints"] = defaultdict(list)
+        deployment["stage"] = current_deployment.stage
+        deployment["service"] = current_fn.service
+        stage = current_deployment.stage if current_deployment.stage else ""
+        info = current_deployment.get_info()
+        assert info
+        urls = info[stage]["urls"]["byMethod"]
+        assert isinstance(deployment["endpoints"], dict)
+        for key, value in urls.items():
+            deployment["endpoints"][key] += value
+            log.info(f"Endpoint deployed:  {key} {value}")
+        deployments.append(deployment)
+    return deployments
+
+
+def test():
+    """Runs integration tests for sls definitions."""
+    pass
+
+
 if __name__ == "__main__":  # pragma: no cover
     args = get_cli_input()
     inputs = get_args()
@@ -196,34 +224,17 @@ if __name__ == "__main__":  # pragma: no cover
 
     assert isinstance(args["filename"], str)  # noqa: 501 # mypy only
     sls = discover_file(changes_list, args["filename"])
+    sls = discover_file(changes_list, args["filename"])
     log.info(f"Discovered: {' '.join(sls)}")
 
-    log.info("Setting up sls profile")
-    set_profile()
-    deployments: List[Deployment_Dict] = []
-    for fn in sls:
-        current_fn = Lambda(fn)
-        current_deployment = current_fn.Deployment(
-            inputs["stage"], "eu-central-1", inputs["profile"]
-        )
-        log.info(f"Deploying service.")
-        current_deployment.deploy()
-        log.info(f"Deployment successful.")
-        deployment: Deployment_Dict = {}
-        assert current_deployment.stage
-        assert current_fn.service
-        deployment["endpoints"] = defaultdict(list)
-        deployment["stage"] = current_deployment.stage
-        deployment["service"] = current_fn.service
-        stage = current_deployment.stage if current_deployment.stage else ""
-        info = current_deployment.get_info()
-        assert info
-        urls = info[stage]["urls"]["byMethod"]
-        assert isinstance(deployment["endpoints"], dict)
-        for key, value in urls.items():
-            deployment["endpoints"][key] += value
-            log.info(f"Endpoint deployed:  {key} {value}")
-        deployments.append(deployment)
+    if inputs["mode"] == "validate":
+        validate()
+    elif inputs["mode"] == "deploy":
+        deployments = deploy(sls, inputs, args)
+    elif inputs["mode"] == "test":
+        test()
+    else:
+        raise ValueError("mode must be in validate, deploy or test")
 
     log.info(f"Setting outputs")
     output_endpoints(deployments)

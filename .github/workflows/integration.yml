@@ -15,5 +15,6 @@ jobs:
           changes: "eb7_sls_helper/test/test.py eb7_sls_helper/test/abc.py"
           stage: "test"
           profile: "default"
+          mode: "deploy"
           aws_key : ${{ secrets.AWS_ACCESS_KEY_ID }} 
           aws_secret :  ${{ secrets.AWS_SECRET_ACCESS_KEY}} 
