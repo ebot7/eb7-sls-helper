@@ -149,6 +149,10 @@ def set_profile() -> None:
     return_code = process.wait()
     if return_code:
         raise subprocess.CalledProcessError(return_code, cmd)
+    os.environ["AWS_ACCESS_KEY_ID"] = os.environ.get("INPUT_AWS_KEY")
+    os.environ["AWS_SECRET_ACCESS_KEY"] = os.environ.get("INPUT_AWS_SECRET")
+    os.environ["AWS_SECRET_ACCESS_KEY"] = os.environ.get("INPUT_AWS_SECRET")
+    os.environ["AWS_DEFAULT_REGION"] = "eu-central-1"
 
 
 def validate():
