@@ -197,6 +197,8 @@ def test(
     args: Dict[str, Union[bool, str, int]],
 ) -> List[Deployment_Dict]:
     """Tests the sls definitions."""
+    log.info("Setting up sls profile")
+    set_profile()
     deployments: List[Deployment_Dict] = []
     for service in sls:
         current_fn = Lambda(service)
