@@ -116,7 +116,9 @@ class SlsFunction(object):
             SlsFunction._Deployment: Deployment instance
         """
         assert self._definition is not None
-        deployment = self._Deployment(self._definition, stage, region, profile)
+        deployment = self._Deployment(
+            self._definition, self, stage, region, profile
+        )
         self._deployments.append(deployment)
         return deployment
 
@@ -151,6 +153,7 @@ class SlsFunction(object):
         def __init__(
             self,
             definition: str,
+            sls_function: SlsFunction,
             stage: Optional[str] = None,
             region: Optional[str] = None,
             profile: Optional[str] = None,
@@ -168,6 +171,7 @@ class SlsFunction(object):
                     Local AWS profile name.
             """
             self._definition: str = definition
+            self._sls_function: str = sls_function
             self._region: Optional[str] = region
             self._stage: Optional[str] = stage
             self._profile: Optional[str] = profile
@@ -260,7 +264,7 @@ class SlsFunction(object):
             """Runs integration tests for the function."""
             COLLECTION = "7531220-7f7958bb-fe01-4825-a45f-29536dac1b7c"
             key = newman.get_api_key(
-                f"{self.stage}-{self._service}", self.profile
+                f"{self.stage}-{self._sls_function._service}", self.profile
             )
             return newman.execute_tests(
                 COLLECTION, postman_api_key, "globals_file", key
