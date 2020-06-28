@@ -63,6 +63,8 @@ def get_args() -> Dict[str, Union[str, int]]:
         "stage": os.environ.get("INPUT_STAGE", ""),
         "profile": os.environ.get("INPUT_PROFILE", ""),
         "validator_path": os.environ.get("INPUT_VALIDATOR_PATH", ""),
+        "postman_api_key": os.environ.get("INPUT_POSTMAN_API_KEY", ""),
+        "globals_file": os.environ.get("INPUT_VALIDATOR_PATH", "globals.json"),
         "log_level": int(os.environ.get("INPUT_LOGLEVEL", 30)),
         "mode": os.environ.get("INPUT_MODE", ""),
         "aws_key": os.environ.get("INPUT_AWS_ACCESS_KEY_ID", ""),
@@ -189,9 +191,24 @@ def deploy(
     return deployments
 
 
-def test():
-    """Runs integration tests for sls definitions."""
-    pass
+def test(
+    sls: List[str],
+    inputs: Dict[str, Union[str, int]],
+    args: Dict[str, Union[bool, str, int]],
+) -> List[Deployment_Dict]:
+    """Tests the sls definitions."""
+    deployments: List[Deployment_Dict] = []
+    for service in sls:
+        current_fn = Lambda(service)
+        current_deployment = current_fn.Deployment(
+            inputs["stage"], "eu-central-1", inputs["profile"]
+        )
+        log.info(f"Testing service service.")
+        print(
+            current_deployment.test(
+                inputs["postman_api_key"], inputs["globals_file"]
+            )[0]
+        )
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -231,10 +248,9 @@ if __name__ == "__main__":  # pragma: no cover
         validate()
     elif inputs["mode"] == "deploy":
         deployments = deploy(sls, inputs, args)
+        log.info(f"Setting outputs")
+        output_endpoints(deployments)
     elif inputs["mode"] == "test":
-        test()
+        test(sls, inputs, args)
     else:
         raise ValueError("mode must be in validate, deploy or test")
-
-    log.info(f"Setting outputs")
-    output_endpoints(deployments)

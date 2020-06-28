@@ -4,6 +4,7 @@ import subprocess  # noqa: S404 # Use of subprocess required
 import os
 import yaml
 import json
+from eb7_sls_helper.src import newman
 from pathlib import Path
 from typing import Optional, List, Dict, Tuple, Union, Any
 
@@ -254,6 +255,16 @@ class SlsFunction(object):
             """Removes the serverless function."""
             cmd, output, error, return_code = self._run_sls_command("remove")
             self._manifest = None
+
+        def test(self, postman_api_key: str, globals_file: str) -> Tuple:
+            """Runs integration tests for the function."""
+            COLLECTION = "7531220-7f7958bb-fe01-4825-a45f-29536dac1b7c"
+            key = newman.get_api_key(
+                f"{self.stage}-{self._service}", self.profile
+            )
+            return newman.execute_tests(
+                COLLECTION, postman_api_key, "globals_file", key
+            )
 
         def _read_manfifest(self) -> None:
             """Upldates information on the deployed serverless function."""
