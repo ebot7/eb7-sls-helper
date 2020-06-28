@@ -28,6 +28,12 @@ inputs:
   aws_secret:
     description: 'AWS SECRET KEY'
     required: true
+  postman_api_key:
+    description: 'API key for postman account'
+    required: false 
+  globals_file:
+    description: 'JSON file for newman containing global values'
+    required: false 
 
 outputs:
   formatted:
