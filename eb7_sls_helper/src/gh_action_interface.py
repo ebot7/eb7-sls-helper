@@ -214,7 +214,7 @@ def test(
         current_deployment = current_fn.Deployment(
             inputs["stage"], "eu-central-1", inputs["profile"]
         )
-        log.info(f"Testing service service.")
+        log.info(f"Testing service.")
         cmd, output, error, return_code = current_deployment.test(
             inputs["postman_api_key"], inputs["globals_file"]
         )
