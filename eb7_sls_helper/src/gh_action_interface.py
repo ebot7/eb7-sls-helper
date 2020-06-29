@@ -209,6 +209,7 @@ def test(
     set_profile()
     deployments: List[Deployment_Dict] = []
     message = ""
+    test_failed = False
     for service in sls:
         current_fn = Lambda(service)
         current_deployment = current_fn.Deployment(
@@ -218,15 +219,14 @@ def test(
         cmd, output, error, return_code = current_deployment.test(
             inputs["postman_api_key"], inputs["globals_file"]
         )
-        print(type(return_code))
+        log.info(output)
+        message += output
         if return_code > 0:
-            log.error(output)
-            log.error(cmd)
-            log.error(error)
-            sys.exit(1)
-        else:
-            log.info(output)
-            message += output
+            test_failed = True
+
+    set_output(f"formatted", message)
+    if test_failed:
+        sys.exit(1)
 
 
 if __name__ == "__main__":  # pragma: no cover
