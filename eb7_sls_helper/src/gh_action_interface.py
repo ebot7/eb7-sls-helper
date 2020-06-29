@@ -225,6 +225,7 @@ def test(
             test_failed = True
 
     set_output(f"formatted", message)
+    print(message)
     if test_failed:
         sys.exit(1)
 
