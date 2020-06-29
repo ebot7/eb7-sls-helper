@@ -64,7 +64,7 @@ def get_args() -> Dict[str, Union[str, int]]:
         "profile": os.environ.get("INPUT_PROFILE", ""),
         "validator_path": os.environ.get("INPUT_VALIDATOR_PATH", ""),
         "postman_api_key": os.environ.get("INPUT_POSTMAN_API_KEY", ""),
-        "globals_file": os.environ.get("INPUT_VALIDATOR_PATH", "globals.json"),
+        "globals_file": os.environ.get("INPUT_GLOBALS_FILE", "globals.json"),
         "log_level": int(os.environ.get("INPUT_LOGLEVEL", 30)),
         "mode": os.environ.get("INPUT_MODE", ""),
         "aws_key": os.environ.get("INPUT_AWS_ACCESS_KEY_ID", ""),
