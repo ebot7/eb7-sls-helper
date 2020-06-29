@@ -267,7 +267,7 @@ class SlsFunction(object):
                 f"{self.stage}-{self._sls_function._service}", self.profile
             )
             return newman.execute_tests(
-                COLLECTION, postman_api_key, "globals_file", key
+                COLLECTION, postman_api_key, globals_file, key
             )
 
         def _read_manfifest(self) -> None:

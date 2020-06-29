@@ -8,6 +8,9 @@ inputs:
   changes:
     description: 'Path or space-separated list of paths of files changed'
     required: true 
+  mode:
+    description: 'Mode of eb7-sls-helper; valid choices are: validate, deploy and test'
+    required: true 
   stage:
     description: 'Function stage to deploy to'
     required: true
