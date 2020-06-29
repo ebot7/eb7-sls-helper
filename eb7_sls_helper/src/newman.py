@@ -6,6 +6,9 @@ import subprocess  # noqa: S404 # Use of subprocess required
 
 def get_api_key(name: str, profile: str) -> str:
     """Get API Gateway API key"""
+    logging.getLogger("boto3").setLevel(logging.CRITICAL)
+    logging.getLogger("botocore").setLevel(logging.CRITICAL)
+    logging.getLogger("apigateway").setLevel(logging.CRITICAL)
     session = boto3.Session(profile_name=profile)
     client = session.client("apigateway")
     response = client.get_api_keys(nameQuery=name, includeValues=True)

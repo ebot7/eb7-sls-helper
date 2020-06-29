@@ -202,6 +202,9 @@ def test(
 ) -> List[Deployment_Dict]:
     """Tests the sls definitions."""
     log.info("Setting up sls profile")
+    logging.getLogger("boto3").setLevel(logging.CRITICAL)
+    logging.getLogger("botocore").setLevel(logging.CRITICAL)
+    logging.getLogger("apigateway").setLevel(logging.CRITICAL)
     set_profile()
     deployments: List[Deployment_Dict] = []
     for service in sls:
@@ -213,7 +216,7 @@ def test(
         print(
             current_deployment.test(
                 inputs["postman_api_key"], inputs["globals_file"]
-            )[0]
+            )[1]
         )
 
 
