@@ -27,4 +27,4 @@ def execute_tests(
     )  # TODO: Input santization for sec reasons  mark@e-bot7.com
     output, error = process.communicate()
     return_code = process.wait()
-    return cmd, output, error, return_code
+    return cmd, output.decode("utf-8"), error, return_code

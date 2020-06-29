@@ -3,6 +3,7 @@ import os
 import logging
 import argparse
 import subprocess  # noqa:S404 # Use of sls required
+import sys
 from typing import Tuple, List, Union, Dict, Any
 from pathlib import Path
 from collections import defaultdict
@@ -119,7 +120,7 @@ def output_endpoints(deployments: List[Deployment_Dict]) -> None:
         a = ""
         assert isinstance(deployment["endpoints"], dict)
         for method, endpoints in deployment["endpoints"].items():
-            a += "\n".join([f"{method} {x}" for x in endpoints])
+            a += "\n\n".join([f"{method} {x}" for x in endpoints])
         for x in a:
             message += x
         message += (
@@ -207,17 +208,24 @@ def test(
     logging.getLogger("apigateway").setLevel(logging.CRITICAL)
     set_profile()
     deployments: List[Deployment_Dict] = []
+    message = ""
     for service in sls:
         current_fn = Lambda(service)
         current_deployment = current_fn.Deployment(
             inputs["stage"], "eu-central-1", inputs["profile"]
         )
         log.info(f"Testing service service.")
-        print(
-            current_deployment.test(
-                inputs["postman_api_key"], inputs["globals_file"]
-            )[1]
+        cmd, output, error, return_code = current_deployment.test(
+            inputs["postman_api_key"], inputs["globals_file"]
         )
+
+        if return_code > 0:
+            log.error(cmd)
+            log.error(error)
+            sys.exit(1)
+        else:
+            log.info(output)
+            message += output
 
 
 if __name__ == "__main__":  # pragma: no cover
