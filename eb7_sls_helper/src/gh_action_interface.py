@@ -218,9 +218,9 @@ def test(
         cmd, output, error, return_code = current_deployment.test(
             inputs["postman_api_key"], inputs["globals_file"]
         )
-        print(return_code)
         print(type(return_code))
         if return_code > 0:
+            log.error(output)
             log.error(cmd)
             log.error(error)
             sys.exit(1)
