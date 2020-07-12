@@ -317,7 +317,7 @@ class SlsFunction(object):
                         + f"defaulting to {self.defaults[k]}"
                     )
             if "custom" in document:
-            print("Custom section found")
+                print("Custom section found")
                 if "newmanCollection" in document.get("custom"):
                     self._newman_collection = document.get("custom").get(
                         "newmanCollection"
