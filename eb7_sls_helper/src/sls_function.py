@@ -143,21 +143,17 @@ class SlsFunction(object):
             self._service = document["service"]
             self._provider_name = document["provider"]["name"]
             self._runtime = document["provider"]["runtime"]
-            if "custom" in document:
-                print("Custom section found")
-                if "newmanCollection" in document.get("custom"):
-                    self._newman_collection = document.get("custom").get(
-                        "newmanCollection"
-                    )
-                if "newmanEnvironment" in document.get("custom"):
-                    self._newman_environment = (
-                        document.get("custom")
-                        .get("newmanEnvironment")
-            print(self._newman_collection)
-            print(self._newman_environment)
-
         except KeyError:
             raise ValueError("Serverless definiton not valid")
+        if "custom" in document:
+            if "newmanCollection" in document.get("custom"):
+                self._newman_collection = document.get("custom").get(
+                    "newmanCollection"
+                )
+            if "newmanEnvironment" in document.get("custom"):
+                self._newman_environment = document.get("custom").get(
+                    "newmanEnvironment"
+                )
 
     class _Deployment(object):  # noqa: WPS431 # Google Style allows nesting
         """_Deployment class."""
@@ -176,7 +172,7 @@ class SlsFunction(object):
             region: Optional[str] = None,
             profile: Optional[str] = None,
             newman_collection: Optional[str] = None,
-            newman_environment: Optional[Dict[str,str]] = None,
+            newman_environment: Optional[Dict[str, str]] = None,
         ) -> None:  # noqa: RST301 # Looks like flake8 error
             """Deployment class.
 
