@@ -117,7 +117,13 @@ class SlsFunction(object):
         """
         assert self._definition is not None
         deployment = self._Deployment(
-            self._definition, self, stage, region, profile
+            self._definition,
+            self,
+            stage,
+            region,
+            profile,
+            self._newman_collection,
+            self._newman_environment,
         )
         self._deployments.append(deployment)
         return deployment
@@ -137,6 +143,20 @@ class SlsFunction(object):
             self._service = document["service"]
             self._provider_name = document["provider"]["name"]
             self._runtime = document["provider"]["runtime"]
+            if "custom" in document:
+                print("Custom section found")
+                if "newmanCollection" in document.get("custom"):
+                    self._newman_collection = document.get("custom").get(
+                        "newmanCollection"
+                    )
+                if "newmanEnvironment" in document.get("custom"):
+                    self._newman_environment = (
+                        document.get("custom")
+                        .get("newmanEnvironment")
+                        .get(self._stage)
+                    )
+            print(self.newman_collection)
+            print(self.newman_environment)
 
         except KeyError:
             raise ValueError("Serverless definiton not valid")
