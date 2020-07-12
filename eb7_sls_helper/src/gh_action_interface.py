@@ -158,7 +158,7 @@ def set_profile() -> None:
 
 def validate():
     """Validates the sls definitions."""
-    pass
+    return None
 
 
 def deploy(
@@ -172,6 +172,9 @@ def deploy(
     deployments: List[Deployment_Dict] = []
     for service in sls:
         current_fn = Lambda(service)
+
+        assert isinstance(inputs["stage"], str)
+        assert isinstance(inputs["profile"], str)
         current_deployment = current_fn.Deployment(
             inputs["stage"], "eu-central-1", inputs["profile"]
         )
@@ -200,7 +203,7 @@ def test(
     sls: List[str],
     inputs: Dict[str, Union[str, int]],
     args: Dict[str, Union[bool, str, int]],
-) -> List[Deployment_Dict]:
+) -> None:
     """Tests the sls definitions."""
     log.info("Setting up sls profile")
     logging.getLogger("boto3").setLevel(logging.CRITICAL)
@@ -212,10 +215,13 @@ def test(
     test_failed = False
     for service in sls:
         current_fn = Lambda(service)
+        assert isinstance(inputs["stage"], str)
+        assert isinstance(inputs["profile"], str)
         current_deployment = current_fn.Deployment(
             inputs["stage"], "eu-central-1", inputs["profile"]
         )
         log.info(f"Testing service.")
+        assert isinstance(inputs["postman_api_key"], str)
         cmd, output, error, return_code = current_deployment.test(
             inputs["postman_api_key"]
         )
@@ -223,6 +229,9 @@ def test(
         message += output
         if return_code > 0:
             test_failed = True
+            log.warning(cmd)
+            log.warning(output)
+            log.warning(error)
 
     set_output(f"formatted", message)
     print(message)
@@ -234,6 +243,7 @@ if __name__ == "__main__":  # pragma: no cover
     args = get_cli_input()
     inputs = get_args()
     assert isinstance(args["verbosity"], int)  # noqa: 501 # mypy only
+    assert isinstance(inputs["log_level"], int)  # noqa: 501 # mypy only
     log = setup_logging(args["verbosity"], inputs["log_level"])
     log.info("e-bot7 Serverless Helper")
     log.info("Setup")
@@ -244,6 +254,7 @@ if __name__ == "__main__":  # pragma: no cover
     for k, v in args.items():
         log.info(f"  {k}: {v}")
 
+    assert isinstance(inputs["changes"], str)  # noqa: 501 # mypy only
     changes_list = (
         inputs["changes"].split()
         if len(inputs["changes"].split()) > len(inputs["changes"].split(","))

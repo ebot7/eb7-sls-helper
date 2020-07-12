@@ -4,14 +4,14 @@ from eb7_sls_helper.src.sls_function import Lambda  # noqa: E402
 from unittest.mock import patch
 
 
-def mock_subprocess(*args, **kwargs):
+def mock_subprocess(*args, **kwargs) -> object:
     """Mock for subprocess.Popen calls."""
 
     class MockResponse(object):
         """Mock class for Popen"""
 
         def __init__(self, *args, **kwargs):
-            self._output = b""
+            self._output = ""
             valid_cmds = [
                 "sls remove --config complete.yml --stage dev --profile default --region eu-central-1",
                 "sls deploy --config complete.yml --stage dev --profile default --region eu-central-1",

@@ -93,7 +93,7 @@ class SlsFunction(object):
     def validate(self, Validator: object) -> None:  # noqa: N803 # obj to come
         """Validates definition."""
         # TODO mark@e-bot7.com will add
-        pass  # noqa: 420 # Future code to come
+        return None
 
     def Deployment(  # noqa: N802 # dynamic ref to nested class
         self,
@@ -173,7 +173,7 @@ class SlsFunction(object):
                     Local AWS profile name.
             """
             self._definition: str = definition
-            self._sls_function: str = sls_function
+            self._sls_function: SlsFunction = sls_function
             self._region: Optional[str] = region
             self._stage: Optional[str] = stage
             self._profile: Optional[str] = profile
@@ -282,11 +282,13 @@ class SlsFunction(object):
             cmd, output, error, return_code = self._run_sls_command("remove")
             self._manifest = None
 
-        def test(self, postman_api_key: str) -> Tuple:
+        def test(self, postman_api_key: str) -> Tuple[str, str, bytes, int]:
             """Runs integration tests for the function."""
+            assert self.profile is not None
             key = newman.get_api_key(
                 f"{self.stage}-{self._sls_function._service}", self.profile
             )
+            assert self.newman_collection is not None
             return newman.execute_tests(
                 self.newman_collection,
                 self.newman_environment,
