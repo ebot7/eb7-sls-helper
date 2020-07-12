@@ -78,9 +78,14 @@ custom:
     prod: lambda.e-bot7.de
     qa: qa-lambda.e-bot7.de
     dev: dev-lambda.e-bot7.de
-
   customDomain:
     basePath: "${self:service}"
     domainName: ${self:custom.domains.${self:provider.stage}}
     stage: "${self:provider.stage}"
     createRoute53Record: true
+  newmanCollection: 7531220-7f7958bb-fe01-4825-a45f-29536dac1b7c
+  newmanEnvironment:
+    prod: 515064e2-b387-40b2-8ea7-6a52947691b7
+    qa: 85e87674-b652-4b09-8cff-4e8cfa700555
+    dev: 5b484da9-ffc5-4d08-824c-24360765267b
+

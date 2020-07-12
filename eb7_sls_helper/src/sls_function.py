@@ -157,6 +157,8 @@ class SlsFunction(object):
             stage: Optional[str] = None,
             region: Optional[str] = None,
             profile: Optional[str] = None,
+            newman_collection: Optional[str] = None,
+            newman_environment: Optional[str] = None,
         ) -> None:  # noqa: RST301 # Looks like flake8 error
             """Deployment class.
 
@@ -175,6 +177,8 @@ class SlsFunction(object):
             self._region: Optional[str] = region
             self._stage: Optional[str] = stage
             self._profile: Optional[str] = profile
+            self._newman_collection: Optional[str] = newman_collection
+            self._newman_environment: Optional[str] = newman_environment
             self._manifest: Optional[Manfifest] = None
 
         def __str__(self) -> str:
@@ -217,12 +221,30 @@ class SlsFunction(object):
 
         @property
         def profile(self) -> Optional[str]:
-            """Stage getter.
+            """Profile getter.
 
             Returns:
-                Optional[str]: Stage of deployment, if defined
+                Optional[str]: Profile of deployment, if defined
             """
             return self._profile
+
+        @property
+        def newman_collection(self) -> Optional[str]:
+            """Newman Collection getter.
+
+            Returns:
+                Optional[str]: Newman collection for testing, if defined
+            """
+            return self._newman_collection
+
+        @property
+        def newman_environment(self) -> Optional[str]:
+            """Newman Environment getter.
+
+            Returns:
+                Optional[str]: Newman environment for testing , if defined
+            """
+            return self._newman_environment
 
         def from_definition(self) -> SlsFunction._Deployment:
             """Parses deploy information from serverless definition.
@@ -260,14 +282,16 @@ class SlsFunction(object):
             cmd, output, error, return_code = self._run_sls_command("remove")
             self._manifest = None
 
-        def test(self, postman_api_key: str, globals_file: str) -> Tuple:
+        def test(self, postman_api_key: str) -> Tuple:
             """Runs integration tests for the function."""
-            COLLECTION = "7531220-7f7958bb-fe01-4825-a45f-29536dac1b7c"
             key = newman.get_api_key(
                 f"{self.stage}-{self._sls_function._service}", self.profile
             )
             return newman.execute_tests(
-                COLLECTION, postman_api_key, globals_file, key
+                self.newman_collection,
+                self.newman_environment,
+                postman_api_key,
+                key,
             )
 
         def _read_manfifest(self) -> None:
@@ -289,6 +313,17 @@ class SlsFunction(object):
                     print(
                         f"{k} not defined in serverless.yml, "
                         + f"defaulting to {self.defaults[k]}"
+                    )
+            if "custom" in document:
+                if "newmanCollection" in document.get("custom"):
+                    self._newman_collection = document.get("custom").get(
+                        "newmanCollection"
+                    )
+                if "newmanEnvironment" in document.get("custom"):
+                    self._newman_environment = (
+                        document.get("custom")
+                        .get("newmanEnvironment")
+                        .get(self._stage)
                     )
 
         def _run_sls_command(

@@ -13,13 +13,13 @@ def get_api_key(name: str, profile: str) -> str:
 
 
 def execute_tests(
-    collection: str, postman_api_key: str, globals_file: str, endpoint_key: str
+    collection: str, environment, postman_api_key: str, endpoint_key: str
 ):
     """Execute newman test"""
     cmd = (
         f"newman run {collection}"
         + f" --postman-api-key {postman_api_key}"
-        + f" -g {globals_file}"
+        + f" --environment {environment}"
         + f' --global-var "key={endpoint_key}"'
     )
     process = subprocess.Popen(
