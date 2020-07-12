@@ -317,6 +317,7 @@ class SlsFunction(object):
                         + f"defaulting to {self.defaults[k]}"
                     )
             if "custom" in document:
+            print("Custom section found")
                 if "newmanCollection" in document.get("custom"):
                     self._newman_collection = document.get("custom").get(
                         "newmanCollection"
@@ -327,6 +328,8 @@ class SlsFunction(object):
                         .get("newmanEnvironment")
                         .get(self._stage)
                     )
+            print(self.newman_collection)
+            print(self.newman_environment)
 
         def _run_sls_command(
             self, operation: str
