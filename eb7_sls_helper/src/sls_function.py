@@ -153,10 +153,8 @@ class SlsFunction(object):
                     self._newman_environment = (
                         document.get("custom")
                         .get("newmanEnvironment")
-                        .get(self._stage)
-                    )
-            print(self.newman_collection)
-            print(self.newman_environment)
+            print(self._newman_collection)
+            print(self._newman_environment)
 
         except KeyError:
             raise ValueError("Serverless definiton not valid")
@@ -178,7 +176,7 @@ class SlsFunction(object):
             region: Optional[str] = None,
             profile: Optional[str] = None,
             newman_collection: Optional[str] = None,
-            newman_environment: Optional[str] = None,
+            newman_environment: Optional[Dict[str,str]] = None,
         ) -> None:  # noqa: RST301 # Looks like flake8 error
             """Deployment class.
 
@@ -311,7 +309,7 @@ class SlsFunction(object):
             assert self.newman_collection is not None
             return newman.execute_tests(
                 self.newman_collection,
-                self.newman_environment,
+                self.newman_environment[self.stage],
                 postman_api_key,
                 key,
             )
