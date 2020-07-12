@@ -20,7 +20,7 @@ def execute_tests(
     cmd = (
         f"newman run {collection}"
         + f" --postman-api-key {postman_api_key}"
-        + f" --environment {environment}"
+        + f" --environment https://api.getpostman.com/environments/{environment}?apikey={postman_api_key}"
         + f' --global-var "key={endpoint_key}"'
     )
     process = subprocess.Popen(
