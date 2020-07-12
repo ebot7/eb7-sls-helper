@@ -217,7 +217,7 @@ def test(
         )
         log.info(f"Testing service.")
         cmd, output, error, return_code = current_deployment.test(
-            inputs["postman_api_key"], inputs["globals_file"]
+            inputs["postman_api_key"]
         )
         log.info(output)
         message += output
