@@ -72,7 +72,7 @@ class DeploymentTestCase(unittest.TestCase):
             + f'Service name: `{deployment["service"]}`\n'
             + f'stage: `{deployment["stage"]}`\n'
             + "Endpoints:\n"
-            + "GET www.url.com/a\nGET www.url.com/bPOST www.url.com/c"
+            + "GET www.url.com/a\n\nGET www.url.com/bPOST www.url.com/c"
             + "\nTo retrieve API keys run "
             + "`aws apigateway get-api-keys "
             + f'--name-query {deployment["stage"]}-{deployment["service"]} '
