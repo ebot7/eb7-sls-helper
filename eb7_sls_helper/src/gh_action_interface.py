@@ -210,9 +210,8 @@ def test(
     logging.getLogger("botocore").setLevel(logging.CRITICAL)
     logging.getLogger("apigateway").setLevel(logging.CRITICAL)
     set_profile()
-    deployments: List[Deployment_Dict] = []
-    message = ""
     test_failed = False
+    message = ""
     for service in sls:
         current_fn = Lambda(service)
         assert isinstance(inputs["stage"], str)
@@ -225,6 +224,40 @@ def test(
         cmd, output, error, return_code = current_deployment.test(
             inputs["postman_api_key"]
         )
+        log.info(output)
+        message += output
+        if return_code > 0:
+            test_failed = True
+            log.warning(cmd)
+            log.warning(output)
+            log.warning(error)
+
+    set_output(f"formatted", message)
+    print(message)
+    if test_failed:
+        sys.exit(1)
+
+
+def run_tox(
+    sls: List[str],
+    inputs: Dict[str, Union[str, int]],
+    args: Dict[str, Union[bool, str, int]],
+) -> None:
+    """Tests the sls definitions."""
+    log.info("Setting up sls profile")
+    message = ""
+    test_failed = False
+    for service in sls:
+        cwd = os.getcwd()
+        parent = Path(service).parent
+        os.chdir(parent)
+        cmd = "tox"
+        process = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, shell=True  # noqa: S602
+        )
+        output, error = process.communicate()
+        return_code = process.wait()
+        os.chdir(cwd)
         log.info(output)
         message += output
         if return_code > 0:
@@ -282,5 +315,7 @@ if __name__ == "__main__":  # pragma: no cover
         output_endpoints(deployments)
     elif inputs["mode"] == "test":
         test(sls, inputs, args)
+    elif inputs["mode"] == "tox":
+        run_tox(sls, inputs, args)
     else:
         raise ValueError("mode must be in validate, deploy or test")

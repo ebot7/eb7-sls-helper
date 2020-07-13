@@ -1,7 +1,7 @@
 FROM python:alpine3.11
 
 
-RUN pip install pyyaml boto3
+RUN pip install pyyaml boto3 tox
 RUN apk add npm
 RUN npm install -g serverless
 RUN npm install serverless-domain-manager serverless-manifest-plugin

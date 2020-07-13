@@ -9,7 +9,7 @@ inputs:
     description: 'Path or space-separated list of paths of files changed'
     required: true 
   mode:
-    description: 'Mode of eb7-sls-helper; valid choices are: validate, deploy and test'
+    description: 'Mode of eb7-sls-helper; valid choices are: validate, deploy, test and tox'
     required: true 
   stage:
     description: 'Function stage to deploy to'
@@ -33,9 +33,6 @@ inputs:
     required: true
   postman_api_key:
     description: 'API key for postman account'
-    required: false 
-  globals_file:
-    description: 'JSON file for newman containing global values'
     required: false 
 
 outputs:
