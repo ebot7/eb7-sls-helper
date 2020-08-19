@@ -3,6 +3,7 @@ import os
 import logging
 import argparse
 import subprocess  # noqa:S404 # Use of sls required
+import sys
 from typing import Tuple, List, Union, Dict, Any
 from pathlib import Path
 from collections import defaultdict
@@ -37,24 +38,6 @@ def get_cli_input() -> Dict[str, Union[bool, str, int]]:
     """
     cli = argparse.ArgumentParser()
     cli.add_argument(
-        "--discovery",
-        type=bool,
-        default=False,
-        help=(
-            "If set, serverless files will be searched in"
-            + "directories of changes based on filename and dir-level arg"
-        ),
-    )
-    cli.add_argument(
-        "--validate-only",
-        type=bool,
-        default=False,
-        help=(
-            "If set, the serverless definition will only be validated, "
-            + "not deployed"
-        ),
-    )
-    cli.add_argument(
         "--filename",
         type=str,
         default="serverless.yml",
@@ -81,7 +64,10 @@ def get_args() -> Dict[str, Union[str, int]]:
         "stage": os.environ.get("INPUT_STAGE", ""),
         "profile": os.environ.get("INPUT_PROFILE", ""),
         "validator_path": os.environ.get("INPUT_VALIDATOR_PATH", ""),
+        "postman_api_key": os.environ.get("INPUT_POSTMAN_API_KEY", ""),
+        "globals_file": os.environ.get("INPUT_GLOBALS_FILE", "globals.json"),
         "log_level": int(os.environ.get("INPUT_LOGLEVEL", 30)),
+        "mode": os.environ.get("INPUT_MODE", ""),
         "aws_key": os.environ.get("INPUT_AWS_ACCESS_KEY_ID", ""),
         "aws_secret": os.environ.get("INPUT_AWS_SECRET_ACCESS_KEY", ""),
     }
@@ -134,7 +120,7 @@ def output_endpoints(deployments: List[Deployment_Dict]) -> None:
         a = ""
         assert isinstance(deployment["endpoints"], dict)
         for method, endpoints in deployment["endpoints"].items():
-            a += "\n".join([f"{method} {x}" for x in endpoints])
+            a += "\n\n".join([f"{method} {x}" for x in endpoints])
         for x in a:
             message += x
         message += (
@@ -164,45 +150,31 @@ def set_profile() -> None:
     return_code = process.wait()
     if return_code:
         raise subprocess.CalledProcessError(return_code, cmd)
+    os.environ["AWS_ACCESS_KEY_ID"] = os.environ.get("INPUT_AWS_KEY")
+    os.environ["AWS_SECRET_ACCESS_KEY"] = os.environ.get("INPUT_AWS_SECRET")
+    os.environ["AWS_SECRET_ACCESS_KEY"] = os.environ.get("INPUT_AWS_SECRET")
+    os.environ["AWS_DEFAULT_REGION"] = "eu-central-1"
 
 
-if __name__ == "__main__":  # pragma: no cover
-    args = get_cli_input()
-    inputs = get_args()
-    assert isinstance(args["verbosity"], int)  # noqa: 501 # mypy only
-    log = setup_logging(args["verbosity"], inputs["log_level"])
-    log.info("e-bot7 Serverless Helper")
-    log.info("Setup")
-    log.info(f"Current CWD: {os.getcwd()}")
-    log.info(f"Current CWD content : {os.listdir(os.getcwd())}")
+def validate():
+    """Validates the sls definitions."""
+    return None
 
-    log.info("The following args were passed:")
-    for k, v in args.items():
-        log.info(f"  {k}: {v}")
 
-    changes_list = (
-        inputs["changes"].split()
-        if len(inputs["changes"].split()) > len(inputs["changes"].split(","))
-        else inputs["changes"].split(",")
-    )
-
-    log.info("The following inputs were set:")
-    log.info(
-        f"  CHANGES: {len(changes_list)} files - {' '.join(changes_list)}"
-    )
-    log.info(f"  STAGE: {inputs['stage']}")
-    log.info(f"  PROFILE: {inputs['profile']}")
-    log.info(f"  VALIDATOR_PATH: {inputs['validator_path']}")
-
-    assert isinstance(args["filename"], str)  # noqa: 501 # mypy only
-    sls = discover_file(changes_list, args["filename"])
-    log.info(f"Discovered: {' '.join(sls)}")
-
+def deploy(
+    sls: List[str],
+    inputs: Dict[str, Union[str, int]],
+    args: Dict[str, Union[bool, str, int]],
+) -> List[Deployment_Dict]:
+    """Deploys the sls definitions."""
     log.info("Setting up sls profile")
     set_profile()
     deployments: List[Deployment_Dict] = []
-    for fn in sls:
-        current_fn = Lambda(fn)
+    for service in sls:
+        current_fn = Lambda(service)
+
+        assert isinstance(inputs["stage"], str)
+        assert isinstance(inputs["profile"], str)
         current_deployment = current_fn.Deployment(
             inputs["stage"], "eu-central-1", inputs["profile"]
         )
@@ -224,6 +196,126 @@ if __name__ == "__main__":  # pragma: no cover
             deployment["endpoints"][key] += value
             log.info(f"Endpoint deployed:  {key} {value}")
         deployments.append(deployment)
+    return deployments
 
-    log.info(f"Setting outputs")
-    output_endpoints(deployments)
+
+def test(
+    sls: List[str],
+    inputs: Dict[str, Union[str, int]],
+    args: Dict[str, Union[bool, str, int]],
+) -> None:
+    """Tests the sls definitions."""
+    log.info("Setting up sls profile")
+    logging.getLogger("boto3").setLevel(logging.CRITICAL)
+    logging.getLogger("botocore").setLevel(logging.CRITICAL)
+    logging.getLogger("apigateway").setLevel(logging.CRITICAL)
+    set_profile()
+    test_failed = False
+    message = ""
+    for service in sls:
+        current_fn = Lambda(service)
+        assert isinstance(inputs["stage"], str)
+        assert isinstance(inputs["profile"], str)
+        current_deployment = current_fn.Deployment(
+            inputs["stage"], "eu-central-1", inputs["profile"]
+        )
+        log.info(f"Testing service.")
+        assert isinstance(inputs["postman_api_key"], str)
+        cmd, output, error, return_code = current_deployment.test(
+            inputs["postman_api_key"]
+        )
+        log.info(output)
+        message += output
+        if return_code > 0:
+            test_failed = True
+            log.warning(cmd)
+            log.warning(output)
+            log.warning(error)
+
+    set_output(f"formatted", message)
+    print(message)
+    if test_failed:
+        sys.exit(1)
+
+
+def run_tox(
+    sls: List[str],
+    inputs: Dict[str, Union[str, int]],
+    args: Dict[str, Union[bool, str, int]],
+) -> None:
+    """Tests the sls definitions."""
+    log.info("Setting up sls profile")
+    message = ""
+    test_failed = False
+    for service in sls:
+        cwd = os.getcwd()
+        parent = Path(service).parent
+        os.chdir(parent)
+        cmd = "tox"
+        process = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, shell=True  # noqa: S602
+        )
+        output, error = process.communicate()
+        return_code = process.wait()
+        os.chdir(cwd)
+        log.info(output)
+        message += output
+        if return_code > 0:
+            test_failed = True
+            log.warning(cmd)
+            log.warning(output)
+            log.warning(error)
+
+    set_output(f"formatted", message)
+    print(message)
+    if test_failed:
+        sys.exit(1)
+
+
+if __name__ == "__main__":  # pragma: no cover
+    args = get_cli_input()
+    inputs = get_args()
+    assert isinstance(args["verbosity"], int)  # noqa: 501 # mypy only
+    assert isinstance(inputs["log_level"], int)  # noqa: 501 # mypy only
+    log = setup_logging(args["verbosity"], inputs["log_level"])
+    log.info("e-bot7 Serverless Helper")
+    log.info("Setup")
+    log.info(f"Current CWD: {os.getcwd()}")
+    log.info(f"Current CWD content : {os.listdir(os.getcwd())}")
+
+    log.info("The following args were passed:")
+    for k, v in args.items():
+        log.info(f"  {k}: {v}")
+
+    assert isinstance(inputs["changes"], str)  # noqa: 501 # mypy only
+    changes_list = (
+        inputs["changes"].split()
+        if len(inputs["changes"].split()) > len(inputs["changes"].split(","))
+        else inputs["changes"].split(",")
+    )
+
+    log.info("The following inputs were set:")
+    log.info(
+        f"  CHANGES: {len(changes_list)} files - {' '.join(changes_list)}"
+    )
+    log.info(f"  STAGE: {inputs['stage']}")
+    log.info(f"  PROFILE: {inputs['profile']}")
+    log.info(f"  VALIDATOR_PATH: {inputs['validator_path']}")
+
+    assert isinstance(args["filename"], str)  # noqa: 501 # mypy only
+    sls = discover_file(changes_list, args["filename"])
+    sls = discover_file(changes_list, args["filename"])
+    log.info(f"Discovered: {' '.join(sls)}")
+
+    if inputs["mode"] == "validate":
+        validate()
+    elif inputs["mode"] == "deploy":
+        deployments = deploy(sls, inputs, args)
+        log.info(f"Setting outputs")
+        output_endpoints(deployments)
+    elif inputs["mode"] == "test":
+        test(sls, inputs, args)
+    elif inputs["mode"] == "tox":
+        run_tox(sls, inputs, args)
+    else:
+        raise ValueError("mode must be in validate, deploy or test")

@@ -4,6 +4,7 @@ import subprocess  # noqa: S404 # Use of subprocess required
 import os
 import yaml
 import json
+from eb7_sls_helper.src import newman
 from pathlib import Path
 from typing import Optional, List, Dict, Tuple, Union, Any
 
@@ -92,7 +93,7 @@ class SlsFunction(object):
     def validate(self, Validator: object) -> None:  # noqa: N803 # obj to come
         """Validates definition."""
         # TODO mark@e-bot7.com will add
-        pass  # noqa: 420 # Future code to come
+        return None
 
     def Deployment(  # noqa: N802 # dynamic ref to nested class
         self,
@@ -115,7 +116,15 @@ class SlsFunction(object):
             SlsFunction._Deployment: Deployment instance
         """
         assert self._definition is not None
-        deployment = self._Deployment(self._definition, stage, region, profile)
+        deployment = self._Deployment(
+            self._definition,
+            self,
+            stage,
+            region,
+            profile,
+            self._newman_collection,
+            self._newman_environment,
+        )
         self._deployments.append(deployment)
         return deployment
 
@@ -134,9 +143,17 @@ class SlsFunction(object):
             self._service = document["service"]
             self._provider_name = document["provider"]["name"]
             self._runtime = document["provider"]["runtime"]
-
         except KeyError:
             raise ValueError("Serverless definiton not valid")
+        if "custom" in document:
+            if "newmanCollection" in document.get("custom"):
+                self._newman_collection = document.get("custom").get(
+                    "newmanCollection"
+                )
+            if "newmanEnvironment" in document.get("custom"):
+                self._newman_environment = document.get("custom").get(
+                    "newmanEnvironment"
+                )
 
     class _Deployment(object):  # noqa: WPS431 # Google Style allows nesting
         """_Deployment class."""
@@ -150,9 +167,12 @@ class SlsFunction(object):
         def __init__(
             self,
             definition: str,
+            sls_function: SlsFunction,
             stage: Optional[str] = None,
             region: Optional[str] = None,
             profile: Optional[str] = None,
+            newman_collection: Optional[str] = None,
+            newman_environment: Optional[Dict[str, str]] = None,
         ) -> None:  # noqa: RST301 # Looks like flake8 error
             """Deployment class.
 
@@ -167,9 +187,12 @@ class SlsFunction(object):
                     Local AWS profile name.
             """
             self._definition: str = definition
+            self._sls_function: SlsFunction = sls_function
             self._region: Optional[str] = region
             self._stage: Optional[str] = stage
             self._profile: Optional[str] = profile
+            self._newman_collection: Optional[str] = newman_collection
+            self._newman_environment: Optional[str] = newman_environment
             self._manifest: Optional[Manfifest] = None
 
         def __str__(self) -> str:
@@ -212,12 +235,30 @@ class SlsFunction(object):
 
         @property
         def profile(self) -> Optional[str]:
-            """Stage getter.
+            """Profile getter.
 
             Returns:
-                Optional[str]: Stage of deployment, if defined
+                Optional[str]: Profile of deployment, if defined
             """
             return self._profile
+
+        @property
+        def newman_collection(self) -> Optional[str]:
+            """Newman Collection getter.
+
+            Returns:
+                Optional[str]: Newman collection for testing, if defined
+            """
+            return self._newman_collection
+
+        @property
+        def newman_environment(self) -> Optional[str]:
+            """Newman Environment getter.
+
+            Returns:
+                Optional[str]: Newman environment for testing , if defined
+            """
+            return self._newman_environment
 
         def from_definition(self) -> SlsFunction._Deployment:
             """Parses deploy information from serverless definition.
@@ -255,6 +296,20 @@ class SlsFunction(object):
             cmd, output, error, return_code = self._run_sls_command("remove")
             self._manifest = None
 
+        def test(self, postman_api_key: str) -> Tuple[str, str, bytes, int]:
+            """Runs integration tests for the function."""
+            assert self.profile is not None
+            key = newman.get_api_key(
+                f"{self.stage}-{self._sls_function._service}", self.profile
+            )
+            assert self.newman_collection is not None
+            return newman.execute_tests(
+                self.newman_collection,
+                self.newman_environment[self.stage],
+                postman_api_key,
+                key,
+            )
+
         def _read_manfifest(self) -> None:
             """Upldates information on the deployed serverless function."""
             cmd, output, error, return_code = self._run_sls_command(
@@ -275,6 +330,20 @@ class SlsFunction(object):
                         f"{k} not defined in serverless.yml, "
                         + f"defaulting to {self.defaults[k]}"
                     )
+            if "custom" in document:
+                print("Custom section found")
+                if "newmanCollection" in document.get("custom"):
+                    self._newman_collection = document.get("custom").get(
+                        "newmanCollection"
+                    )
+                if "newmanEnvironment" in document.get("custom"):
+                    self._newman_environment = (
+                        document.get("custom")
+                        .get("newmanEnvironment")
+                        .get(self._stage)
+                    )
+            print(self.newman_collection)
+            print(self.newman_environment)
 
         def _run_sls_command(
             self, operation: str

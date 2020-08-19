@@ -41,10 +41,6 @@ class LambdaTestCase(unittest.TestCase):
         """Asserts that the runtime property works as intended."""
         self.assertEqual(self.Lambda.runtime, self.runtime)
 
-    def test_validate(self):
-        """Placeholder."""
-        self.assertEqual(None, self.Lambda.validate(None))
-
     def test_invalid_definition(self):
         """Asserts that incomplete sls definitions raise errors."""
         with self.assertRaises(ValueError):

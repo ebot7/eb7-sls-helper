@@ -8,6 +8,9 @@ inputs:
   changes:
     description: 'Path or space-separated list of paths of files changed'
     required: true 
+  mode:
+    description: 'Mode of eb7-sls-helper; valid choices are: validate, deploy, test and tox'
+    required: true 
   stage:
     description: 'Function stage to deploy to'
     required: true
@@ -28,6 +31,9 @@ inputs:
   aws_secret:
     description: 'AWS SECRET KEY'
     required: true
+  postman_api_key:
+    description: 'API key for postman account'
+    required: false 
 
 outputs:
   formatted:
