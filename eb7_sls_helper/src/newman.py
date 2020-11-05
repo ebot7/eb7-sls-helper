@@ -24,7 +24,7 @@ def execute_tests(
         + f' --global-var "key={endpoint_key}"'
     )
     process = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, shell=True  # noqa: S602
+        cmd, stdout=subprocess.PIPE, shell=True, universal_newlines=True  # noqa: S602
     )  # TODO: Input santization for sec reasons  mark@e-bot7.com
     output, error = process.communicate()
     return_code = process.wait()

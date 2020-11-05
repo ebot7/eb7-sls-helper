@@ -144,7 +144,7 @@ def set_profile() -> None:
         + f" --secret {os.environ.get('INPUT_AWS_SECRET')}"
     )
     process = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, shell=True  # noqa: S602
+        cmd, stdout=subprocess.PIPE, shell=True, universal_newlines=True # noqa: S602
     )  # TODO: Sanitze inputs mark@ebot7.com
     output, error = process.communicate()
     return_code = process.wait()
@@ -253,7 +253,7 @@ def run_tox(
         os.chdir(parent)
         cmd = "tox"
         process = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, shell=True  # noqa: S602
+            cmd, stdout=subprocess.PIPE, shell=True, universal_newlines=True  # noqa: S602
         )
         output, error = process.communicate()
         return_code = process.wait()
