@@ -259,7 +259,7 @@ def run_tox(
         return_code = process.wait()
         os.chdir(cwd)
         log.info(output)
-        message += output
+        message += str(output)
         if return_code > 0:
             test_failed = True
             log.warning(cmd)
