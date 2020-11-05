@@ -226,7 +226,7 @@ def test(
         )
         log.info(output)
         if isinstance(output, str):
-            message += output
+            message += output  # Is it getting the new one?
         else:
             message += output.decode("utf-8")
         if return_code > 0:
@@ -266,7 +266,7 @@ def run_tox(
         os.chdir(cwd)
         log.info(output)
         if isinstance(output, str):
-            message += output
+            message += output  # Is it getting the new one?
         else:
             message += output.decode("utf-8")
         if return_code > 0:
