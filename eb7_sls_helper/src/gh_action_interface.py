@@ -144,7 +144,7 @@ def set_profile() -> None:
         + f" --secret {os.environ.get('INPUT_AWS_SECRET')}"
     )
     process = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, shell=True, universal_newlines=True # noqa: S602
+        cmd, stdout=subprocess.PIPE, shell=True, universal_newlines=True  # noqa: S602
     )  # TODO: Sanitze inputs mark@ebot7.com
     output, error = process.communicate()
     return_code = process.wait()
@@ -225,7 +225,10 @@ def test(
             inputs["postman_api_key"]
         )
         log.info(output)
-        message += output
+        if isinstance(output, str):
+            message += output
+        else:
+            message += output.decode("utf-8")
         if return_code > 0:
             test_failed = True
             log.warning(cmd)
@@ -253,13 +256,19 @@ def run_tox(
         os.chdir(parent)
         cmd = "tox"
         process = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, shell=True, universal_newlines=True  # noqa: S602
+            cmd,
+            stdout=subprocess.PIPE,
+            shell=True,
+            universal_newlines=True,  # noqa: S602
         )
         output, error = process.communicate()
         return_code = process.wait()
         os.chdir(cwd)
         log.info(output)
-        message += output
+        if isinstance(output, str):
+            message += output
+        else:
+            message += output.decode("utf-8")
         if return_code > 0:
             test_failed = True
             log.warning(cmd)
@@ -295,9 +304,7 @@ if __name__ == "__main__":  # pragma: no cover
     )
 
     log.info("The following inputs were set:")
-    log.info(
-        f"  CHANGES: {len(changes_list)} files - {' '.join(changes_list)}"
-    )
+    log.info(f"  CHANGES: {len(changes_list)} files - {' '.join(changes_list)}")
     log.info(f"  STAGE: {inputs['stage']}")
     log.info(f"  PROFILE: {inputs['profile']}")
     log.info(f"  VALIDATOR_PATH: {inputs['validator_path']}")
