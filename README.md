@@ -6,5 +6,27 @@
 
 This tool makes validating (to come), deployment and removal of serverless services easy for CI/CD.
 
+## How to update the pipeline tool.
 
+Since 06/11, we've introduced a image that's pre-built in our docker hub registry:
+
+`https://hub.docker.com/repository/docker/ebot7/eb7_sls_helper`
+
+Whenever we have a new code merged/created here, we need to build/update this container so that the workflow picks up the changes.
+
+For this, I've created a simple Makefile to build, tag and publish the images. In order to use this, you need the credentials from ebot7 docker hub account. You can ask around for the credentials, so someone with permissions can share them with you. Once you have the credentials do a quick:
+
+`docker login`
+
+Enter the ebot7 username and password that you've received. 
+
+That's it! Now you can publish the new image!
+
+To build and tag, run:
+
+`make build`
+
+To push image, run:
+
+`make publish`
 
