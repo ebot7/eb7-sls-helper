@@ -8,6 +8,7 @@ from typing import Tuple, List, Union, Dict, Any
 from pathlib import Path
 from collections import defaultdict
 from eb7_sls_helper.src.sls_function import Lambda
+from eb7_sls_helper.src.utils.tox_formatter import format_tox_output
 
 Deployment = Lambda._Deployment
 Endpoints_Dict = Dict[str, List[str]]
@@ -245,7 +246,7 @@ def run_tox(
 ) -> None:
     """Tests the sls definitions."""
     log.info("Setting up sls profile")
-    message = ""
+    formatted_output = ""
     test_failed = False
     for service in sls:
         cwd = os.getcwd()
@@ -258,16 +259,16 @@ def run_tox(
         output, error = process.communicate()
         return_code = process.wait()
         os.chdir(cwd)
-        log.info(output)
-        message += output
+        formatted_output = format_tox_output(output)
+        log.info(formatted_output)
         if return_code > 0:
             test_failed = True
             log.warning(cmd)
-            log.warning(output)
+            log.warning(formatted_output)
             log.warning(error)
 
-    set_output(f"formatted", message)
-    print(message)
+    set_output(f"formatted", formatted_output)  # noqa: F541
+    print(formatted_output)
     if test_failed:
         sys.exit(1)
 
