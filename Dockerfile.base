@@ -1,8 +1,10 @@
-FROM python:alpine3.11
+FROM python:3.8-slim
 
-RUN pip install pyyaml boto3 tox
-RUN apk add npm
-RUN apk add git
+RUN pip install --upgrade pip tox virtualenv pyyaml boto3
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install -y curl
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN apt-get install -y nodejs git
 RUN npm install -g serverless
 RUN npm install serverless-domain-manager serverless-manifest-plugin
 RUN npm install -g newman 
@@ -10,5 +12,4 @@ RUN npm install -g newman
 COPY eb7_sls_helper/ /usr/bin/eb7_sls_helper/
 ENV PYTHONPATH "${PYTHONPATH}:/usr/bin/"
 
-# Entrypoint
 CMD python3 /usr/bin/eb7_sls_helper/src/gh_action_interface.py
