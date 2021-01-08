@@ -246,26 +246,26 @@ def run_tox(
 ) -> None:
     """Tests the sls definitions."""
     log.info("Setting up sls profile")
-    formatted_output = "This is a test message"
+    formatted_output = ""
     test_failed = False
-    # for service in sls:
-    #     cwd = os.getcwd()
-    #     parent = Path(service).parent
-    #     os.chdir(parent)
-    #     cmd = "tox"
-    #     process = subprocess.Popen(
-    #         cmd, stdout=subprocess.PIPE, shell=True  # noqa: S602
-    #     )
-    #     output, error = process.communicate()
-    #     return_code = process.wait()
-    #     os.chdir(cwd)
-    #     formatted_output = format_tox_output(output)
-    #     log.info(formatted_output)
-    #     if return_code > 0:
-    #         test_failed = True
-    #         log.warning(cmd)
-    #         log.warning(formatted_output)
-    #         log.warning(error)
+    for service in sls:
+        cwd = os.getcwd()
+        parent = Path(service).parent
+        os.chdir(parent)
+        cmd = "tox"
+        process = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, shell=True  # noqa: S602
+        )
+        output, error = process.communicate()
+        return_code = process.wait()
+        os.chdir(cwd)
+        formatted_output = format_tox_output(output)
+        log.info(formatted_output)
+        if return_code > 0:
+            test_failed = True
+            log.warning(cmd)
+            log.warning(formatted_output)
+            log.warning(error)
 
     set_output(f"formatted", formatted_output)  # noqa: F541
     print(formatted_output)
