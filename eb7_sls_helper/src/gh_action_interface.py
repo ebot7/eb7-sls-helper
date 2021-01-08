@@ -330,6 +330,7 @@ if __name__ == "__main__":  # pragma: no cover
     log.info(f"  STAGE: {inputs['stage']}")
     log.info(f"  PROFILE: {inputs['profile']}")
     log.info(f"  VALIDATOR_PATH: {inputs['validator_path']}")
+    log.info(f"  MODE: {inputs['mode']}")
 
     assert isinstance(args["filename"], str)  # noqa: 501 # mypy only
     sls = discover_file(changes_list, args["filename"])
