@@ -273,6 +273,34 @@ def run_tox(
         sys.exit(1)
 
 
+def run_tests(
+    sls: List[str],
+    inputs: Dict[str, Union[str, int]],
+    args: Dict[str, Union[bool, str, int]],
+) -> None:
+    """Tests the sls definitions."""
+    log.info("Setting up sls profile")
+    formatted_output = ""
+    test_failed = False
+    for service in sls:
+        cwd = os.getcwd()
+        parent = Path(service).parent
+        os.chdir(parent)
+        cmd = "pytest --cov=functions/src -vvv --disable-pytest-warnings --cov-report term-missing --ignore=node_modules"
+        log.info(service)
+        return_code = 0
+        os.chdir(cwd)
+        log.info(formatted_output)
+        if return_code > 0:
+            test_failed = True
+            log.warning(cmd)
+            log.warning(formatted_output)
+
+    print(formatted_output)
+    if test_failed:
+        sys.exit(1)
+
+
 if __name__ == "__main__":  # pragma: no cover
     args = get_cli_input()
     inputs = get_args()
@@ -318,5 +346,7 @@ if __name__ == "__main__":  # pragma: no cover
         test(sls, inputs, args)
     elif inputs["mode"] == "tox":
         run_tox(sls, inputs, args)
+    elif inputs["mode"] == "pytest":
+        run_tests(sls, inputs, args)
     else:
         raise ValueError("mode must be in validate, deploy or test")
