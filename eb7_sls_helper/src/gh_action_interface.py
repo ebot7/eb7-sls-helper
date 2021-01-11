@@ -286,9 +286,15 @@ def run_tests(
         cwd = os.getcwd()
         parent = Path(service).parent
         os.chdir(parent)
+        install_requirements = "pip install -rrequirements.txt"
         cmd = "pytest --cov=functions/src -vvv --disable-pytest-warnings --cov-report term-missing --ignore=node_modules"
+        
+        requirement_process = subprocess.Popen(
+            install_requirements, stdout=subprocess.PIPE, shell=True
+        )
+
         process = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, shell=True  # noqa: S602
+            cmd, stdout=subprocess.PIPE, shell=True
         )
         output, error = process.communicate()
         return_code = process.wait()
