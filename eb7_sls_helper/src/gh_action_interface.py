@@ -287,15 +287,23 @@ def run_tests(
         parent = Path(service).parent
         os.chdir(parent)
         cmd = "pytest --cov=functions/src -vvv --disable-pytest-warnings --cov-report term-missing --ignore=node_modules"
-        log.info(service)
-        return_code = 0
+        process = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, shell=True  # noqa: S602
+        )
+        output, error = process.communicate()
+        return_code = process.wait()
+        os.chdir(cwd)
+        formatted_output = format_tox_output(output)
+        log.info(formatted_output)
         os.chdir(cwd)
         log.info(formatted_output)
         if return_code > 0:
             test_failed = True
             log.warning(cmd)
             log.warning(formatted_output)
+            log.warning(error)
 
+    set_output(f"formatted", formatted_output)  # noqa: F541
     print(formatted_output)
     if test_failed:
         sys.exit(1)
