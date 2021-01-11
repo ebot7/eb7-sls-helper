@@ -1,6 +1,5 @@
 FROM python:3.8-slim
 
-pip install --upgrade pip tox virtualenv
 RUN pip install --upgrade pip tox virtualenv pyyaml boto3
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y curl
