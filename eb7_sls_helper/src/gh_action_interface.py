@@ -288,23 +288,17 @@ def run_tests(
         os.chdir(parent)
         install_requirements = "pip install -rrequirements.txt"
         cmd = "pytest --cov=functions/src -vvv --disable-pytest-warnings --cov-report term-missing --ignore=node_modules"
-        whoami_process = subprocess.Popen("cat requirements.txt", stdout=subprocess.PIPE, shell=True)
-        requirement_process = subprocess.Popen(
+        subprocess.Popen(
             install_requirements, stdout=subprocess.PIPE, shell=True
         )
 
         process = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, shell=True
         )
-        whoami_output, error = whoami_process.communicate()
-        log.info(whoami_output)
         output, error = process.communicate()
         return_code = process.wait()
         os.chdir(cwd)
         formatted_output = format_tox_output(output)
-        log.info(formatted_output)
-        os.chdir(cwd)
-        log.info(formatted_output)
         if return_code > 0:
             test_failed = True
             log.warning(cmd)

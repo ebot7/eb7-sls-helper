@@ -1,6 +1,7 @@
 FROM python:3.8-slim
 
-RUN pip install pyyaml boto3 tox
+pip install --upgrade pip tox virtualenv
+RUN pip install --upgrade pip tox virtualenv pyyaml boto3
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y curl
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
