@@ -288,7 +288,7 @@ def run_tests(
         os.chdir(parent)
         install_requirements = "pip install -rrequirements.txt"
         cmd = "pytest --cov=functions/src -vvv --disable-pytest-warnings --cov-report term-missing --ignore=node_modules"
-        whoami_process = subprocess.Popen("whoami", stdout=subprocess.PIPE, shell=True)
+        whoami_process = subprocess.Popen("cat requirements.txt", stdout=subprocess.PIPE, shell=True)
         requirement_process = subprocess.Popen(
             install_requirements, stdout=subprocess.PIPE, shell=True
         )
