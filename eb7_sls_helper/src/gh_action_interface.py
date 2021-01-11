@@ -273,44 +273,6 @@ def run_tox(
         sys.exit(1)
 
 
-def run_tests(
-    sls: List[str],
-    inputs: Dict[str, Union[str, int]],
-    args: Dict[str, Union[bool, str, int]],
-) -> None:
-    """Tests the sls definitions."""
-    log.info("Setting up sls profile")
-    formatted_output = ""
-    test_failed = False
-    for service in sls:
-        cwd = os.getcwd()
-        parent = Path(service).parent
-        os.chdir(parent)
-        install_requirements = "pip install -rrequirements.txt"
-        cmd = "pytest --cov=functions/src -vvv --disable-pytest-warnings --cov-report term-missing --ignore=node_modules"
-        subprocess.Popen(
-            install_requirements, stdout=subprocess.PIPE, shell=True
-        )
-
-        process = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, shell=True
-        )
-        output, error = process.communicate()
-        return_code = process.wait()
-        os.chdir(cwd)
-        formatted_output = format_tox_output(output)
-        if return_code > 0:
-            test_failed = True
-            log.warning(cmd)
-            log.warning(formatted_output)
-            log.warning(error)
-
-    set_output(f"formatted", formatted_output)  # noqa: F541
-    print(formatted_output)
-    if test_failed:
-        sys.exit(1)
-
-
 if __name__ == "__main__":  # pragma: no cover
     args = get_cli_input()
     inputs = get_args()
@@ -340,7 +302,6 @@ if __name__ == "__main__":  # pragma: no cover
     log.info(f"  STAGE: {inputs['stage']}")
     log.info(f"  PROFILE: {inputs['profile']}")
     log.info(f"  VALIDATOR_PATH: {inputs['validator_path']}")
-    log.info(f"  MODE: {inputs['mode']}")
 
     assert isinstance(args["filename"], str)  # noqa: 501 # mypy only
     sls = discover_file(changes_list, args["filename"])
@@ -357,7 +318,5 @@ if __name__ == "__main__":  # pragma: no cover
         test(sls, inputs, args)
     elif inputs["mode"] == "tox":
         run_tox(sls, inputs, args)
-    elif inputs["mode"] == "pytest":
-        run_tests(sls, inputs, args)
     else:
         raise ValueError("mode must be in validate, deploy or test")
