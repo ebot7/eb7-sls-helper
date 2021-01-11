@@ -286,21 +286,18 @@ def run_tests(
         cwd = os.getcwd()
         parent = Path(service).parent
         os.chdir(parent)
-        # install_requirements = "pip install -rrequirements.txt"
+        install_requirements = "pip install -rrequirements.txt"
         cmd = "pytest --cov=functions/src -vvv --disable-pytest-warnings --cov-report term-missing --ignore=node_modules"
         whoami_process = subprocess.Popen("whoami", stdout=subprocess.PIPE, shell=True)
-        ls_process = subprocess.Popen("ls -lha /github/home/.cache/pip", stdout=subprocess.PIPE, shell=True)
-        # requirement_process = subprocess.Popen(
-        #     install_requirements, stdout=subprocess.PIPE, shell=True
-        # )
+        requirement_process = subprocess.Popen(
+            install_requirements, stdout=subprocess.PIPE, shell=True
+        )
 
         process = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, shell=True
         )
         whoami_output, error = whoami_process.communicate()
-        ls_output, error = ls_process.communicate()
         log.info(whoami_output)
-        log.info(ls_output)
         output, error = process.communicate()
         return_code = process.wait()
         os.chdir(cwd)
