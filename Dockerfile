@@ -1,6 +1,6 @@
 FROM ebot7/eb7_sls_helper:test
 
-RUN apk --no-cache add musl-dev linux-headers g++ gcc python3-dev libffi-dev
+RUN apk --no-cache add musl-dev linux-headers g++ gcc python3-dev libffi-dev libssl-dev
 
 ENV PYTHONPATH "${PYTHONPATH}:/usr/bin/"
 COPY eb7_sls_helper/ /usr/bin/eb7_sls_helper/
