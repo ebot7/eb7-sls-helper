@@ -14,7 +14,7 @@ Since 06/11, we've introduced a image that's pre-built in our docker hub registr
 
 Whenever we have a new code merged/created here, we need to build/update this container so that the workflow picks up the changes.
 
-For this, I've created a simple Makefile to build, tag and publish the images. In order to use this, you need the credentials from ebot7 docker hub account. You can ask around for the credentials, so someone with permissions can share them with you. Once you have the credentials do a quick:
+For this, I've created a simple Makefile to build, tag and publish the images. In order to use this, you need the credentials from ebot7 docker hub account. You can ask around for the credentials, so someone with permissions can share them with you (ask Ilya [[@il-bot](https://github.com/il-bot)] to share them through LastPass). Once you have the credentials do a quick:
 
 `docker login`
 
