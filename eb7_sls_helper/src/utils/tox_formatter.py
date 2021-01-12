@@ -20,6 +20,7 @@ def format_tox_output(output: bytes) -> str:
         sanitized: tox output sanitized
     """
 
-    string_output = output.decode("utf-8") 
+    string_output = str(output)
+    formatted_output = string_output.replace('\\n', '\n').replace('\\t', '\t')
     regex = re.compile(URL_WITH_ACCESS_TOKEN_REGEX)
-    return re.sub(regex, "sanitized_url :)", string_output)
+    return re.sub(regex, "sanitized_url :)", formatted_output)
