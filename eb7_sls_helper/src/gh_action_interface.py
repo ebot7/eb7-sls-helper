@@ -260,7 +260,7 @@ def run_tox(
         return_code = process.wait()
         os.chdir(cwd)
         formatted_output = format_tox_output(output)
-        log.info(formatted_output.decode("utf-8"))
+        log.info(formatted_output)
         if return_code > 0:
             test_failed = True
             log.warning(cmd)
