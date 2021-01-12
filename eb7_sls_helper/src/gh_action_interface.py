@@ -252,7 +252,7 @@ def run_tox(
         cwd = os.getcwd()
         parent = Path(service).parent
         os.chdir(parent)
-        cmd = "tox"
+        cmd = "ls -lha"
         process = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, shell=True  # noqa: S602
         )
