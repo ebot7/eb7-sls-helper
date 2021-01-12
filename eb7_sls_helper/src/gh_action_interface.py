@@ -259,10 +259,7 @@ def run_tox(
         output, error = process.communicate()
         return_code = process.wait()
         os.chdir(cwd)
-        # formatted_output = format_tox_output(output)
-        formatted_output = """ this is a very
-        long string if I had the
-        energy to type more and more ..."""
+        formatted_output = format_tox_output(output)
         log.info(formatted_output)
         if return_code > 0:
             test_failed = True
