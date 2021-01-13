@@ -21,8 +21,7 @@ def format_tox_output(output: bytes) -> str:
     """
     string_output = output.decode("utf8")
     sanitized_str = sanitize_str(string_output)
-    formated_logs = format_logs(sanitized_str)
-    return formated_logs
+    return format_logs(sanitized_str)
 
 
 def sanitize_str(text: str) -> str:
@@ -61,7 +60,6 @@ def add_markdown(log_name: str, log_text: str) -> str:
     return md_log
 
 
-
 def add_diff_md(log_name: str, log_text: str) -> str:
     """Adds the markdown diff codeblock format WRT status
 
@@ -98,7 +96,7 @@ def split_logs(output_logs: str) -> list:
     """
     flags = re.DOTALL | re.MULTILINE
     installtion_logs = output_logs.split("============================= test", 1)[0]
-    tests_logs = re.findall('((^=.*test ).*)^.*-- coverage', output_logs, re.DOTALL | re.MULTILINE)[0][0]
+    tests_logs = re.findall('((^=.*test ).*)^.*-- coverage', output_logs, flags)[0][0]
     coverage_logs = re.findall('((^--.*coverage).*?^(_.*summary.*_$))', output_logs, flags)[0][0]
     final_logs = output_logs.split("summary ____________________________________", 1)[1]
     return {
@@ -122,5 +120,5 @@ def format_logs(output_logs: str) -> str:
     for key, value in log_list.items():
         colorized_log = add_markdown(key, value)
         log_list[key] = colorized_log
-    return log_list["general"] + "\n" + log_list["tests"] + "\n" \
-            + log_list["coverage"] + "\n" + log_list["final"]
+    return (log_list["general"] + "\n" + log_list["tests"] + "\n"
+        + log_list["coverage"] + "\n" + log_list["final"])
