@@ -6,7 +6,7 @@ import re
 URL_WITH_ACCESS_TOKEN_REGEX = r"https:\/\/([a-z0-9]+)@github.com"  # noqa: S105
 
 
-def format_tox_output(output: bytes, return_code: int) -> str:
+def format_tox_output(output: bytes) -> str:
     """Function for formatting tox output.
 
     Right now, it only sanitizes the access token but
