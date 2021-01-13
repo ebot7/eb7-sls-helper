@@ -19,10 +19,22 @@ def format_tox_output(output: bytes) -> str:
     Returns:
         sanitized: tox output sanitized
     """
-
     string_output = output.decode("utf8")
+    sanitized_str = sanitize_str(string_output)
+    return sanitized_str
+
+def sanitize_str(text: str) -> str:
+    """Function for sanitizing string from  secret keys
+
+    Args:
+        text (str): output log for tox
+
+    Returns:
+        str: sanitized string from  secret keys
+    """
     regex = re.compile(URL_WITH_ACCESS_TOKEN_REGEX)
-    return re.sub(regex, "sanitized_url :)", string_output)
+    return re.sub(regex, "sanitized_url :)", text)
+
 
 
 def get_list_from_string(text: str) -> list:
