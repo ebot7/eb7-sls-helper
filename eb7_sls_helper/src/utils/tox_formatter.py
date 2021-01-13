@@ -37,30 +37,39 @@ def sanitize_str(text: str) -> str:
     return re.sub(regex, "sanitized_url :)", text)
 
 
-def get_list_from_string(text: str) -> list:
-    """Function for getting an itterable list out of a multiline string
-
-    Args:
-        text (str): multiline string
-
-    Returns:
-        list: a list containing lines of string 
-    """
-    return text.splitlines()
-
-
-def add_color_markdown(log_text: str) -> str:
+def add_color_markdown(log_name: str, log_text: str) -> str:
     """[summary]
 
     Args:
-        log_text ([type]): [description]
+        log_name (str): [description]
+        log_text (str): [description]
 
     Returns:
         str: [description]
     """
-    
-    return "```diff\n+ " + log_text + "\n```\n"
+    header = "```\n"
+    footer = "\n```\n"
+    if log_name != "tests":
+        header = "```diff\n"
+        log_text = add_diff_md(log_text)
+    return header + log_text + footer
 
+def add_diff_md(log_text: str) -> str:
+    """[summary]
+
+    Args:
+        log_text (str): [description]
+    """
+    line_list = log_text.splitlines()
+    for idx, line in enumerate(line_list):
+        if "WARNING" in line:
+            line = "! " + line
+        elif "Success" in line:
+            line = "+ " + line
+        elif "ERROR":
+            line = "- " + line
+        line_list[idx] = line
+    return "\n".join(line_list)
 
 def split_success_logs(output_logs: str) -> list:
     """Function for splitting respective parts of logs
@@ -77,7 +86,7 @@ def split_success_logs(output_logs: str) -> list:
     final_logs = re.findall('(^  py38.*)', output_logs, flags)[0]
     log_list = {"general": installtion_logs, "tests": tests_logs, "final": final_logs}
     for key, value in log_list.items():
-        colorized_log = add_color_markdown(value)
+        colorized_log = add_color_markdown(key, value)
         log_list[key] = colorized_log
         print(colorized_log)
     # print(log_list)
