@@ -23,3 +23,15 @@ def format_tox_output(output: bytes) -> str:
     string_output = output.decode("utf8")
     regex = re.compile(URL_WITH_ACCESS_TOKEN_REGEX)
     return re.sub(regex, "sanitized_url :)", string_output)
+
+
+def get_list_from_string(text: str) -> list:
+    """Function for getting an itterable list out of a multiline string
+
+    Args:
+        text (str): multiline string
+
+    Returns:
+        list: a list containing lines of string 
+    """
+    return text.splitlines()
