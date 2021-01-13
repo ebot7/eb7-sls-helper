@@ -120,5 +120,9 @@ def format_logs(output_logs: str) -> str:
     for key, value in log_list.items():
         colorized_log = add_markdown(key, value)
         log_list[key] = colorized_log
-    return (log_list["general"] + "\n" + log_list["tests"] + "\n"
-        + log_list["coverage"] + "\n" + log_list["final"])
+    return (
+        log_list["general"] + "\n" +
+        log_list["tests"] + "\n" +
+        log_list["coverage"] + "\n" +
+        log_list["final"]
+    )
