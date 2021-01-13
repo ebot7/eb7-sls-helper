@@ -259,7 +259,7 @@ def run_tox(
         output, error = process.communicate()
         return_code = process.wait()
         os.chdir(cwd)
-        formatted_output = format_tox_output(output)
+        formatted_output = format_tox_output(output, return_code)
         log.info(formatted_output)
         if return_code > 0:
             test_failed = True

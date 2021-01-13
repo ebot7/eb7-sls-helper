@@ -6,7 +6,7 @@ import re
 URL_WITH_ACCESS_TOKEN_REGEX = r"https:\/\/([a-z0-9]+)@github.com"  # noqa: S105
 
 
-def format_tox_output(output: bytes) -> str:
+def format_tox_output(output: bytes, return_code: int) -> str:
     """Function for formatting tox output.
 
     Right now, it only sanitizes the access token but
@@ -21,7 +21,8 @@ def format_tox_output(output: bytes) -> str:
     """
     string_output = output.decode("utf8")
     sanitized_str = sanitize_str(string_output)
-    return sanitized_str
+    formated_logs = format_logs(sanitized_str)
+    return formated_logs
 
 
 def sanitize_str(text: str) -> str:
@@ -37,41 +38,56 @@ def sanitize_str(text: str) -> str:
     return re.sub(regex, "sanitized_url :)", text)
 
 
-def add_color_markdown(log_name: str, log_text: str) -> str:
-    """[summary]
+def add_markdown(log_name: str, log_text: str) -> str:
+    """Adds the markdown diff codeblock format
 
     Args:
-        log_name (str): [description]
-        log_text (str): [description]
+        log_name (str): log part
+        log_text (str): log content
 
     Returns:
-        str: [description]
+        str: markdown diff codeblock formated string
     """
     header = "```\n"
     footer = "\n```\n"
-    if log_name != "tests":
+    if log_name != "coverage":
         header = "```diff\n"
-        log_text = add_diff_md(log_text)
-    return header + log_text + footer
+        log_text = add_diff_md(log_name, log_text)
+    md_log = header + log_text + footer
+    if log_name == "general":
+        collapse_header = "<details><summary>Installation packages</summary>\n\n"
+        collapse_footer = "\n</details>\n"
+        md_log = collapse_header + md_log + collapse_footer
+    return md_log
 
-def add_diff_md(log_text: str) -> str:
-    """[summary]
+
+
+def add_diff_md(log_name: str, log_text: str) -> str:
+    """Adds the markdown diff codeblock format WRT status
 
     Args:
-        log_text (str): [description]
+        log_name (str): log part
+        log_text (str): log content
+
+    Returns:
+        str: markdown diff codeblock formated string
     """
+    success_matches = ["success", "succeed", "congratulations", "passed"]
+    warn_matches = ["warning:"]
+    error_matches = ["error", "fail"]
     line_list = log_text.splitlines()
     for idx, line in enumerate(line_list):
-        if "WARNING" in line:
-            line = "! " + line
-        elif "Success" in line:
+        if any(match in line.lower() for match in success_matches):
             line = "+ " + line
-        elif "ERROR":
+        elif any(match in line.lower() for match in warn_matches):
+            line = "! " + line
+        elif any(match in line.lower() for match in error_matches):
             line = "- " + line
         line_list[idx] = line
     return "\n".join(line_list)
 
-def split_success_logs(output_logs: str) -> list:
+
+def split_logs(output_logs: str) -> list:
     """Function for splitting respective parts of logs
 
     Args:
@@ -81,12 +97,30 @@ def split_success_logs(output_logs: str) -> list:
         list: list containing different parts of logs
     """
     flags = re.DOTALL | re.MULTILINE
-    installtion_logs = output_logs.split("----------- coverage", 1)[0]
-    tests_logs = re.findall('((^-.*coverage).*?^(_.*summary.*_$))', output_logs, flags)[0][0]
-    final_logs = re.findall('(^  py38.*)', output_logs, flags)[0]
-    log_list = {"general": installtion_logs, "tests": tests_logs, "final": final_logs}
+    installtion_logs = output_logs.split("============================= test", 1)[0]
+    tests_logs = re.findall('((^=.*test ).*)^.*-- coverage', output_logs, re.DOTALL | re.MULTILINE)[0][0]
+    coverage_logs = re.findall('((^--.*coverage).*?^(_.*summary.*_$))', output_logs, flags)[0][0]
+    final_logs = output_logs.split("summary ____________________________________", 1)[1]
+    return {
+        "general": installtion_logs,
+        "tests": tests_logs,
+        "coverage": coverage_logs,
+        "final": final_logs
+    }
+
+
+def format_logs(output_logs: str) -> str:
+    """Function for formating logs in MD format
+
+    Args:
+        output_logs (str): the full text output
+
+    Returns:
+        str: new formated str
+    """
+    log_list = split_logs(output_logs)
     for key, value in log_list.items():
-        colorized_log = add_color_markdown(key, value)
+        colorized_log = add_markdown(key, value)
         log_list[key] = colorized_log
-        print(colorized_log)
-    # print(log_list)
+    return log_list["general"] + "\n" + log_list["tests"] + "\n" \
+            + log_list["coverage"] + "\n" + log_list["final"]
