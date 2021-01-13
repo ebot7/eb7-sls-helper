@@ -19,7 +19,110 @@ def format_tox_output(output: bytes) -> str:
     Returns:
         sanitized: tox output sanitized
     """
+    string_output = output.decode("utf8")
+    sanitized_str = sanitize_str(string_output)
+    return format_logs(sanitized_str)
 
-    string_output = str(output)
+
+def sanitize_str(text: str) -> str:
+    """Function for sanitizing string from  secret keys
+
+    Args:
+        text (str): output log for tox
+
+    Returns:
+        str: sanitized string from  secret keys
+    """
     regex = re.compile(URL_WITH_ACCESS_TOKEN_REGEX)
-    return re.sub(regex, "sanitized_url :)", string_output)
+    return re.sub(regex, "sanitized_url :)", text)
+
+
+def add_markdown(log_name: str, log_text: str) -> str:
+    """Adds the markdown diff codeblock format
+
+    Args:
+        log_name (str): log part
+        log_text (str): log content
+
+    Returns:
+        str: markdown diff codeblock formated string
+    """
+    header = "```\n"
+    footer = "\n```\n"
+    if log_name != "coverage":
+        header = "```diff\n"
+        log_text = add_diff_md(log_name, log_text)
+    md_log = header + log_text + footer
+    if log_name == "general":
+        collapse_header = "<details><summary>Installation packages</summary>\n\n"
+        collapse_footer = "\n</details>\n"
+        md_log = collapse_header + md_log + collapse_footer
+    return md_log
+
+
+def add_diff_md(log_name: str, log_text: str) -> str:
+    """Adds the markdown diff codeblock format WRT status
+
+    Args:
+        log_name (str): log part
+        log_text (str): log content
+
+    Returns:
+        str: markdown diff codeblock formated string
+    """
+    success_matches = ["success", "succeed", "congratulations", "passed"]
+    warn_matches = ["warning:"]
+    error_matches = ["error", "fail"]
+    line_list = log_text.splitlines()
+    for idx, line in enumerate(line_list):
+        if any(match in line.lower() for match in success_matches):
+            line = "+ " + line
+        elif any(match in line.lower() for match in warn_matches):
+            line = "! " + line
+        elif any(match in line.lower() for match in error_matches):
+            line = "- " + line
+        line_list[idx] = line
+    return "\n".join(line_list)
+
+
+def split_logs(output_logs: str) -> list:
+    """Function for splitting respective parts of logs
+
+    Args:
+        output_logs (str): the full text output
+
+    Returns:
+        list: list containing different parts of logs
+    """
+    flags = re.DOTALL | re.MULTILINE
+    installtion_logs = output_logs.split("============================= test", 1)[0]
+    tests_logs = re.findall('((^=.*test ).*)^.*-- coverage', output_logs, flags)[0][0]
+    coverage_logs = re.findall('((^--.*coverage).*?^(_.*summary.*_$))', output_logs, flags)[0][0]
+    final_logs = output_logs.split("summary ____________________________________", 1)[1]
+    return {
+        "general": installtion_logs,
+        "tests": tests_logs,
+        "coverage": coverage_logs,
+        "final": final_logs
+    }
+
+
+def format_logs(output_logs: str) -> str:
+    """Function for formating logs in MD format
+
+    Args:
+        output_logs (str): the full text output
+
+    Returns:
+        str: new formated str
+    """
+    log_list = split_logs(output_logs)
+    for key, value in log_list.items():
+        colorized_log = add_markdown(key, value)
+        log_list[key] = colorized_log
+    return (
+        log_list["general"] + "\n" +
+        log_list["tests"] + "\n" +
+        log_list["coverage"] + "\n" +
+        log_list["final"]
+    )
