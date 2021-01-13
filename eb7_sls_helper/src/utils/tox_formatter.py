@@ -23,6 +23,7 @@ def format_tox_output(output: bytes) -> str:
     sanitized_str = sanitize_str(string_output)
     return sanitized_str
 
+
 def sanitize_str(text: str) -> str:
     """Function for sanitizing string from  secret keys
 
@@ -36,7 +37,6 @@ def sanitize_str(text: str) -> str:
     return re.sub(regex, "sanitized_url :)", text)
 
 
-
 def get_list_from_string(text: str) -> list:
     """Function for getting an itterable list out of a multiline string
 
@@ -47,3 +47,37 @@ def get_list_from_string(text: str) -> list:
         list: a list containing lines of string 
     """
     return text.splitlines()
+
+
+def add_color_markdown(log_text: str) -> str:
+    """[summary]
+
+    Args:
+        log_text ([type]): [description]
+
+    Returns:
+        str: [description]
+    """
+    
+    return "```diff\n+ " + log_text + "\n```\n"
+
+
+def split_success_logs(output_logs: str) -> list:
+    """Function for splitting respective parts of logs
+
+    Args:
+        output_logs (str): the full text output
+
+    Returns:
+        list: list containing different parts of logs
+    """
+    flags = re.DOTALL | re.MULTILINE
+    installtion_logs = output_logs.split("----------- coverage", 1)[0]
+    tests_logs = re.findall('((^-.*coverage).*?^(_.*summary.*_$))', output_logs, flags)[0][0]
+    final_logs = re.findall('(^  py38.*)', output_logs, flags)[0]
+    log_list = {"general": installtion_logs, "tests": tests_logs, "final": final_logs}
+    for key, value in log_list.items():
+        colorized_log = add_color_markdown(value)
+        log_list[key] = colorized_log
+        print(colorized_log)
+    # print(log_list)
